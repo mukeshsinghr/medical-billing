@@ -10,43 +10,94 @@
 	
 	<link rel='stylesheet' href='../Stylesheets/invoice-style.css'>
 	<link rel='stylesheet' href='../Stylesheets/print.css' media="print">
-	<link rel='stylesheet' href='../Stylesheets/jquery.autocomplete.css'>
+	<link rel='stylesheet' href='../Stylesheets/jquery-ui.css'>
 	<script src='../Scripts/jquery.js'></script>
 	<script src='../Scripts/example.js'></script>
-	<script src='../Scripts/jquery.autocomplete.js'></script>
-	<script src='../Scripts/localdata.js'></script>
+	<script src='../Scripts/jquery-ui.min.js'></script>
 
 	<script type="text/javascript">
-			$().ready(function() {
-			
-				function log(event, data, formatted) {
-					$("<li>").html( !data ? "No match!" : "Selected: " + formatted).appendTo("#result");
-				}
+	
+		$(document).ready(function(){
+			$(".textbox").autocomplete({
 				
-				function formatItem(row) {
-					return row[0] + " (<strong>id: " + row[1] + "</strong>)";
-				}
-				function formatResult(row) {
-					return row[0].replace(/(<.+?>)/gi, '');
-				}
-				
-			
-				$("#suggest13").autocomplete(medicenes, {
-					minChars: 0,
-					width: 310,
-					matchContains: "word",
-					autoFill: false,
-					formatItem: function(row, i, max) {
-						return i + "/" + max + ": \"" + row.name + "\" [" + row.stock + "]";
+	// 				source:"${pageContext.request.contextPath}/get_country_list.do"
+					minLength: 1,
+			        delay: 500,
+					source : function (request, response) {
+						
+						$.getJSON("${pageContext.request.contextPath}/get_country_list.do", request, function(result) {
+							 response($.map(result, function(item){
+								 var available = (item.available) > 0 ? item.available : "Out of stock";
+								 return {
+									 
+									 label : item.name + " (total available = " + available + ")",
+									 value : item.name,
+									 description : item.description,
+									 unitprice : item.unitprice
+								 }
+							 }));
+							
+						});
 					},
-					formatMatch: function(row, i, max) {
-						return row.name + " " + row.stock;
-					},
-					formatResult: function(row) {
-						return row.name;
+					select : function(e ,ui) {
+						var numbers = this.id.match(/\d+\.?\d*/g);
+						var description = ui.item.description;
+						var unitPrice = ui.item.unitprice;
+						
+						var descId = "desc"+numbers;
+						var priceId = "price" + numbers;
+						$("#"+descId).text(description);
+						$("#"+priceId).text("Rs"+unitPrice);
+						
 					}
-				});	
-			});
+					
+				});
+			
+			  $("#addrow").click(function(){
+					  var rowCount = $('#items tr').length;
+		
+					  var idNo = rowCount - 5;
+					  var textBoxId = "suggest" +idNo;
+					  var descId = "desc" + idNo;
+					  var unitPriceId = "price" + idNo;
+		//			  alert(textBoxId);
+				    $(".item-row:last").after('<tr class="item-row"><td class="item-name"><div class="delete-wpr"><input type="text" class="textbox" id="'+textBoxId+'" /><a class="delete" href="javascript:;" title="Remove row">X</a></div></td><td class="description"><div id="'+descId+'"></div></td><td><textarea class="cost" id="'+unitPriceId+'" readonly="readonly">Rs0</textarea></td><td><textarea class="qty">0</textarea></td><td><span class="price">Rs0</span></td></tr>');
+				    $("#"+textBoxId).autocomplete({
+						minLength: 1,
+				        delay: 500,
+						source : function (request, response) {
+							
+							$.getJSON("${pageContext.request.contextPath}/get_country_list.do", request, function(result) {
+								 response($.map(result, function(item){
+									 var available = (item.available) > 0 ? item.available : "Out of stock";
+									 return {
+										 
+										 label : item.name + " (total available = " + available + ")",
+										 value : item.name,
+										 description : item.description,
+										 unitprice : item.unitprice
+									 }
+								 }));
+								
+							});
+						},
+						select : function(e ,ui) {
+							var numbers = this.id.match(/\d+\.?\d*/g);
+							var description = ui.item.description;
+							var unitPrice = ui.item.unitprice;
+							
+							var descId = "desc"+numbers;
+							var priceId = "price" + numbers;
+							$("#"+descId).text(description);
+							$("#"+priceId).text("Rs"+unitPrice);
+							
+						}
+				    });
+				    if ($(".delete").length > 0) $(".delete").show();
+				    bind();
+			  });
+		});
+
 	</script>
 </head>
 
@@ -103,7 +154,7 @@ c/o Steve Widget</textarea>
                 </tr>
                 <tr>
                     <td class="meta-head">Amount Due</td>
-                    <td><div class="due">Rs875.00</div></td>
+                    <td><div class="due">Rs0.00</div></td>
                 </tr>
 
             </table>
@@ -121,22 +172,14 @@ c/o Steve Widget</textarea>
 		  </tr>
 		  
 		  <tr class="item-row">
-		      <td class="item-name"><div class="delete-wpr"><input type="text" class="textbox" id="suggest13" /><a class="delete" href="javascript:;" title="Remove row">X</a></div></td>
-		      <td class="description"><div>Monthly web updates for http://widgetcorp.com (Nov. 1 - Nov. 30, 2009)</div></td>
-		      <td><textarea class="cost">Rs650.00</textarea></td>
-		      <td><textarea class="qty">1</textarea></td>
-		      <td><span class="price">Rs650.00</span></td>
+		      <td class="item-name"><div class="delete-wpr"><input type="text" class="textbox" id="suggest1" /><a class="delete" href="javascript:;" title="Remove row">X</a></div></td>
+		      <td class="description"><div id="desc1"></div></td>
+		      <td><textarea class="cost" id="price1" readonly="readonly"></textarea></td>
+		      <td><textarea class="qty">0</textarea></td>
+		      <td><span class="price">Rs0</span></td>
 		  </tr>
 		  
-		  <tr class="item-row">
-		      <td class="item-name"><div class="delete-wpr"><textarea>SSL Renewals</textarea><a class="delete" href="javascript:;" title="Remove row">X</a></div></td>
-
-		      <td class="description"><div>Yearly renewals of SSL certificates on main domain and several subdomains</div></td>
-		      <td><textarea class="cost">Rs75.00</textarea></td>
-		      <td><textarea class="qty">3</textarea></td>
-		      <td><span class="price">Rs225.00</span></td>
-		  </tr>
-		  
+	  
 		  <tr id="hiderow">
 		    <td colspan="5"><a id="addrow" href="javascript:;" title="Add a row">Add a row</a></td>
 		  </tr>
@@ -144,13 +187,13 @@ c/o Steve Widget</textarea>
 		  <tr>
 		      <td colspan="2" class="blank"> </td>
 		      <td colspan="2" class="total-line">Subtotal</td>
-		      <td class="total-value"><div id="subtotal">Rs875.00</div></td>
+		      <td class="total-value"><div id="subtotal">Rs0</div></td>
 		  </tr>
 		  <tr>
 
 		      <td colspan="2" class="blank"> </td>
 		      <td colspan="2" class="total-line">Total</td>
-		      <td class="total-value"><div id="total">Rs875.00</div></td>
+		      <td class="total-value"><div id="total">Rs0</div></td>
 		  </tr>
 		  <tr>
 		      <td colspan="2" class="blank"> </td>
@@ -161,7 +204,7 @@ c/o Steve Widget</textarea>
 		  <tr>
 		      <td colspan="2" class="blank"> </td>
 		      <td colspan="2" class="total-line balance">Balance Due</td>
-		      <td class="total-value balance"><div class="due">Rs875.00</div></td>
+		      <td class="total-value balance"><div class="due">Rs0</div></td>
 		  </tr>
 		
 		</table>
