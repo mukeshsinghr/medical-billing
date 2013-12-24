@@ -18,7 +18,7 @@
 	<context:component-scan base-package="com.dp.medical.medicalstore" />
 
 	<context:property-placeholder location="/WEB-INF/config/target-mysql.properties"/>
-
+	<bean class="org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor" />
 
 	<!-- In this file we configure Hibernate and transactional behavior -->
 	<import resource="applicationContext-persistence.xml" />
